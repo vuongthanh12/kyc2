@@ -1,0 +1,82 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <sstream>
+
+using namespace std;
+
+// Функция для построения таблицы префикс-функций (KMP)
+vector<int> buildKMPTable(const string& pattern) {
+    int m = pattern.size();
+    vector<int> kmpTable(m, 0);
+    int j = 0;
+    for (int i = 1; i < m; ++i) {
+        if (pattern[i] == pattern[j]) {
+            kmpTable[i] = ++j;
+        } else {
+            if (j > 0) {
+                j = kmpTable[j - 1];
+                --i;
+            } else {
+                kmpTable[i] = 0;
+            }
+        }
+    }
+    return kmpTable;
+}
+
+// Функция для поиска и удаления всех вхождений заданного слова с использованием алгоритма КМП
+string removeOccurrences(const string& text, const string& pattern) {
+    if (pattern.empty()) return text; // Если образец пуст, вернуть исходный текст
+
+    string result;
+    int n = text.size();
+    int m = pattern.size();
+    vector<int> kmpTable = buildKMPTable(pattern);
+    int i = 0; // индекс в тексте
+    int j = 0; // индекс в образце
+
+    while (i < n) {
+        if (text[i] == pattern[j]) {
+            ++i;
+            ++j;
+            // Найдено совпадение всего образца
+            if (j == m) {
+                // Пропустить найденное слово и сбросить j
+                j = 0;
+                // Удаляем слово из текста, пропуская его
+                if (i < n && text[i] == ' ') {
+                    while (i < n && text[i] == ' ') ++i; // пропускаем пробелы после слова
+                }
+            }
+        } else {
+            if (j > 0) {
+                j = kmpTable[j - 1];
+            } else {
+                result += text[i];
+                ++i;
+            }
+        }
+    }
+
+    return result;
+}
+
+int main() {
+    setlocale(LC_ALL, "RU");
+
+    string pattern;
+    cout << "Введите слово для удаления: ";
+    getline(cin, pattern);
+
+    string text;
+    cout << "Введите текст: ";
+    getline(cin, text);
+
+    string modifiedText = removeOccurrences(text, pattern);
+
+    cout << "Текст после удаления слова \"" << pattern << "\":" << endl;
+    cout << modifiedText << endl;
+
+    return 0;
+}
